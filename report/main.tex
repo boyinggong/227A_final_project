@@ -1,4 +1,4 @@
-\documentclass[letterpaper, 10 pt, conference]{ieeeconf} 
+\documentclass[14pt]{article} 
 
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
@@ -15,6 +15,7 @@
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
 \newtheorem{lemma}[theorem]{Lemma}
+\setcounter{MaxMatrixCols}{20}
 
 \usepackage{geometry}
  \geometry{
@@ -146,50 +147,103 @@
 
 \subsection{Naive Strategy}
 
-    Let $C_{initial} = 70.3$ be the amount that the company has at the beginning of the horizon, and $l = (C_{initial}, 0, 0, 0, 0, 0)$. Let $x=(x_{cash}, x_{cp}, x_{cre}), x_{cash}\in\mathbb{R}^6, x_{cp}\in\mathbb{R}^3, x_{cre}\in\mathbb{R}^5$. In the naive strategy, we assume the future liability be $\hat{b(t)}$ without error. 
+    Let $C^{(1)}_{initial} = 70.3$ be the amount that the company has at the beginning of the horizon. We assume the future liability be $\hat{b}(t)$ without error. We now describe the rolling-horizon naive strategy.
     
-    In January ($i = 1$), the company can draw an amount $x_{cre}(1)$ from its line of credit and issue an amount $x_{cp}(1)$ of commercial paper. Together with the initial asset $C_{initial}$, $x_{cre}(1)+x_{cp}(1)+C_{initial}$ will be used for investment and meeting the liabilities. The balance equation is as follows, 
+    In January ($i = 1$), let $x^{(1)}=(x^{(1)}_{cash}, x^{(1)}_{cp}, x^{(1)}_{cre})$ be the decision variables $, x^{(1)}_{cash}\in\mathbb{R}^6, x^{(1)}_{cp}\in\mathbb{R}^3, x^{(1)}_{cre}\in\mathbb{R}^5$. The company can draw an amount $x^{(1)}_{cre}(1)$ from its line of credit and issue an amount $x^{(1)}_{cp}(1)$ of commercial paper. Together with the initial asset $C^{(1)}_{initial}$, $x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial}$ will be used for investment and meeting the liabilities. The balance equation is as follows, 
     \[
-        x_{cre}(1)+x_{cp}(1)+C_{initial}-x_{cash}(1) = b_1
+        x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial}\geq x^{(1)}_{cash}(1) + \hat{b}_1(t).
     \]
     Similarly, we can get the equation for other months and obtain the following LP formulation:
     \[
         \begin{split}
-            \max_{x} \quad & x_{cash}(6) \\
+            \max_{x} \quad & x^{(1)}_{cash}(6) \\
             \text{s.t.} \quad 
-            & x_{cre}(1) + x_{cp}(1)+C_{initial}-x_{cash}(1) = b_1 \\
-            & x_{cre}(2) + x_{cp}(2) -1.01x_{cre}(1) + 1.003x_{cash}(1) -x_{cash}(2) = b_2 \\
-            & x_{cre}(3) + x_{cp}(3) -1.01x_{cre}(2) + 1.003x_{cash}(2) -x_{cash}(3) = b_3 \\
-            & x_{cre}(4) - 1.02x_{cp}(1) - 1.01x_{cre}(3) + 1.003x_{cash}(3) - x_{cash}(4) = b_4 \\
-            & x_{cre}(5) - 1.02x_{cp}(2) - 1.01x_{cre}(4) + 1.003x_{cash}(4) - x_{cash}(5) = b_5 \\
-            & - 1.02x_{cp}(3) - 1.01x_{cre}(5) + 1.003x_{cash}(5) - x_{cash}(6) = b_6 \\
-            & 0 \leq x_{cre}(i) \leq 1, i = 1, \cdots, 5.\\
-            & x_{cp} \geq 0, i = 1, 2, 3.\\
-            & x_{cash}(i)\geq 0, i = 1, \cdots, 6.
+            & x^{(1)}_{cre}(1) + x^{(1)}_{cp}(1)+C^{(1)}_{initial}-x^{(1)}_{cash}(1) \geq \hat{b}_1(t), \\
+            & x^{(1)}_{cre}(2) + x^{(1)}_{cp}(2) -1.01x^{(1)}_{cre}(1) + 1.003x_{cash}(1) -x^{(1)}_{cash}(2) \geq \hat{b}_2(t),  \\
+            & x^{(1)}_{cre}(3) + x^{(1)}_{cp}(3) -1.01x^{(1)}_{cre}(2) + 1.003x_{cash}(2) -x^{(1)}_{cash}(3) \geq \hat{b}_3(t),  \\
+            & x^{(1)}_{cre}(4) - 1.02x^{(1)}_{cp}(1) - 1.01x^{(1)}_{cre}(3) + 1.003x_{cash}(3) - x^{(1)}_{cash}(4) \geq \hat{b}_4(t),  \\
+            & x^{(1)}_{cre}(5) - 1.02x^{(1)}_{cp}(2) - 1.01x^{(1)}_{cre}(4) + 1.003x_{cash}(4) - x^{(1)}_{cash}(5) \geq \hat{b}_5(t),  \\
+            & - 1.02x^{(1)}_{cp}(3) - 1.01x^{(1)}_{cre}(5) + 1.003x^{(1)}_{cash}(5) - x^{(1)}_{cash}(6) \geq \hat{b}_6(t),  \\
+            & 0 \leq x^{(1)}_{cre}(i) \leq 1, i = 1, \cdots, 5.\\
+            & x^{(1)}_{cp} \geq 0, i = 1, 2, 3.\\
+            & x^{(1)}_{cash}(i)\geq 0, i = 1, \cdots, 6.
         \end{split}
     \]
     Write this in LP format:
+    \begin{equation}\label{eq:naiveJan}
+        \min_x c_1^Tx: A_1x+l_1\geq\hat{b}(t), 0\leq x\leq \bar{x}_1.
+    \end{equation}
+    where $l_1 = \begin{pmatrix}C^{(1)}_{initial} & 0& 0& 0& 0& 0\end{pmatrix}^T$ and 
     \[
-        \min_x c^Tx: Ax+l\geq\hat{b}(t), 0\leq x\leq \bar{x} 
-    \]
-    The maximization of the amount of cash at the end of the period is $58.4301$. The optimal strategy is 
-    \[
-        x_{cash} = 
+        A_1
+        = 
         \begin{pmatrix}
-        7.761 & 66.032 & 64.010 & 62.175 & 60.269 & 58.430
-        \end{pmatrix}^T,
+            a_1^T \\
+            a_2^T \\
+            a_3^T \\
+            a_4^T \\
+            a_5^T \\
+            a_6^T
+        \end{pmatrix}
+        =
+        \begin{pmatrix}
+            -1    &   0    &   0    &  0    &  0    &  0    &  1    &  0   &  0   &  1     &   0   &  0   &  0   &  0   \\
+            1.003 &  -1    &   0    &  0    &  0    &  0    &  0    &  1   &  0   &  -1.01 &   1   &  0   &  0   &  0   \\
+            0     & 1.003  &   -1   &  0    &  0    &  0    &  0    &  0   &  1   &  0     & -1.01 &  1   &  0   &  0   \\
+            0     &  0     & 1.003  &   -1  &  0    &  0    & -1.02 &  0   &  0   &  0     &  0    & -1.01&  1   &  0   \\
+            0     &  0     &  0     & 1.003 &  -1   &  0    &  0    &-1.02 &  0   &  0     &  0    &  0   &-1.01 &  1   \\
+            0     &  0     &  0     &  0    & 1.003 &  -1   &  0    &  0   &-1.02 &  0     &  0    &  0   &  0   &-1.01
+        \end{pmatrix}.
     \]
-    $x_{cp}$ and $x_{cre}$ equal to 0.
-    
-    The results show that if the company have sufficient amount of initial asset, say 70.3 million, the naive strategy will not turn to credit line nor commercial paper.
 
-    Figure \ref{fig:naive} shows that as we decrease the amount of initial funds, the optimal amount for credit line $X_{cre}$ and commercial paper $X_{cp}$ will stay 0. The optimal value of excess funds to be invested $X_{cash}$ will decrease linearly. This is because it is the only source to cover the liability and the constraints are linear. When the initial funds drops below 12.739 million, the problem will become infeasible.
-    \begin{figure*}
-	   \centering
-	   \includegraphics[width=0.7\textwidth]{naive.png}
-        \caption{Optimal naive strategy for difference initial assets}
-        \label{fig:naive}
-    \end{figure*}  
+    After solving the optimization problem (\ref{eq:naiveJan}), only the first of these decisions $x^{(1)}_{cre}(1)$, $x^{(1)}_{cp}(1)$ and $x^{(1)}_{cash}(1)$ will be implemented. 
+
+    Assume the realization of the liability of January is $\beta_1$. If $x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial} - x^{(1)}_{cash}(1) \leq \beta_1$, the company will not be able to meet the required liability, and the strategy will fail. If $x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial} - x^{(1)}_{cash}(1) \geq \beta_1$, the company will have $C^{(2)}_{initial} =  x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial} - x^{(1)}_{cash}(1) - \beta_1$ at the beginning of Feburary. Moreover, we can use $\beta_1$ to get the updated uncertainty model $\hat{b}(t+1)\in\mathbb{R}^5$ and $B(t+1)\in\mathbb{R}^{5\times5}$.
+
+    In Feburary ($i = 2$), let $x^{(2)}=(x^{(2)}_{cash}, x^{(2)}_{cp}, x^{(2)}_{cre})$ be the decision variables, $x^{(2)}_{cash}\in\mathbb{R}^5, x^{(2)}_{cp}\in\mathbb{R}^2, x^{(2)}_{cre}\in\mathbb{R}^4$. The company can draw an amount $x^{(2)}_{cre}(2)$ from its line of credit and issue an amount $x^{(2)}_{cp}(2)$ of commercial paper. In addition, principal plus interest of $1.01x^{(1)}_{cre}(1)$ is due on the line of credit and $1.003x^{(1)}_{cash}(1)$ is received on the invested excess funds. Thus, $1.003x^{(1)}_{cash}(1)+x^{(2)}_{cre}(2)+x^{(2)}_{cp}(2)+C^{(2)}_{initial}$ will be used for investment, meeting the liabilities and payment of credit line. The balance equation is as follows, 
+        \[
+            1.003x^{(1)}_{cash}(1)+x^{(2)}_{cre}(2)+x^{(2)}_{cp}(2)+C^{(2)}_{initial}\geq x^{(2)}_{cash}(2) + \hat{b}_2(t+1)+1.01x^{(2)}_{cre}(1).
+        \]
+    The equation for other months will be the same as the optimization problem in January. We can obtain the following LP fomulation:
+    \begin{equation}\label{eq:naiveFeb}
+        \min_x c_2^Tx: A_2x+l_2\geq\hat{b}(t+1), 0\leq x\leq \bar{x}_2.
+    \end{equation}
+    where $l_2 = \begin{pmatrix}C^{(2)}_{initial} & 0& 0& 0& 0\end{pmatrix}^T$.
+
+    Similarly, only $x^{(2)}_{cre}(2)$, $x^{(2)}_{cp}(2), x^{(2)}_{cash}(2)$ will be implemented. We can then solve similar problems in the following months and obtain the decision variables. Finally in June(i = 6), there will be only one decision variable $x^{(6)}_{cash}(6)$, and we need to solve the following problem:
+    \[
+        \begin{split}
+            \max_{x} \quad & x^{(6)}_{cash}(6) \\
+            \text{s.t.} \quad 
+            & - 1.02x^{(3)}_{cp}(3) - 1.01x^{(5)}_{cre}(5) + 1.003x^{(5)}_{cash}(5) - x^{(1)}_{cash}(6) \geq \hat{b}_6(t+5),  \\
+            & x^{(1)}_{cash}(6)\geq 0
+        \end{split}
+    \]
+    Or equivalently,
+    \begin{equation}\label{eq:naiveJune}
+        \min_x c_6^Tx: A_6x+l_6\geq\hat{b}(t+5), 0\leq x\leq \bar{x}_5.
+    \end{equation}
+    If feasible, this problem is trivial with $x^{(1)}_{cash}(6) = - 1.02x^{(3)}_{cp}(3) - 1.01x^{(5)}_{cre}(5) + 1.003x^{(5)}_{cash}(5) - \hat{b}_6(t+5).$
+
+
+    % The maximization of the amount of cash at the end of the period is $58.4301$. The optimal strategy is 
+    % \[
+    %     x_{cash} = 
+    %     \begin{pmatrix}
+    %     7.761 & 66.032 & 64.010 & 62.175 & 60.269 & 58.430
+    %     \end{pmatrix}^T,
+    % \]
+    % $x_{cp}$ and $x_{cre}$ equal to 0.
+    
+    % The results show that if the company have sufficient amount of initial asset, say 70.3 million, the naive strategy will not turn to credit line nor commercial paper.
+
+    % Figure \ref{fig:naive} shows that as we decrease the amount of initial funds, the optimal amount for credit line $X_{cre}$ and commercial paper $X_{cp}$ will stay 0. The optimal value of excess funds to be invested $X_{cash}$ will decrease linearly. This is because it is the only source to cover the liability and the constraints are linear. When the initial funds drops below 12.739 million, the problem will become infeasible.
+    % \begin{figure*}
+	   % \centering
+	   % \includegraphics[width=0.7\textwidth]{naive.png}
+    %     \caption{Optimal naive strategy for difference initial assets}
+    %     \label{fig:naive}
+    % \end{figure*}  
 
 % ================== Robust Strategy ==================
 
@@ -219,12 +273,12 @@
     $x_{cp}$ and $x_{cre}$ equals to 0. The results shows that if the company have sufficient amount of initial asset, the robust strategy will not turn to credit line nor commercial paper. The robust strategy is much more conservative than the naive strategy in that it uses less cash for investment and more for covering the liability.
 
     Figure \ref{fig:robust} shows the robust counterpart of Figure \ref{fig:naive}. As we decrease the amount of initial funds, the optimal amount for credit line $X_{cre}$ and commercial paper $X_{cp}$ will stay 0 as well. The optimal value of excess funds to be invested $X_{cash}$ will decrease linearly. When the initial funds drops below 60.205 million, the problem will become infeasible.
-    \begin{figure*}
-	   \centering
-	   \includegraphics[width=0.7\textwidth]{robust.png}
-        \caption{Optimal robust strategy for difference initial assets}
-        \label{fig:robust}
-    \end{figure*}  
+    % \begin{figure*}
+	   % \centering
+	   % \includegraphics[width=0.7\textwidth]{robust.png}
+    %     \caption{Optimal robust strategy for difference initial assets}
+    %     \label{fig:robust}
+    % \end{figure*}  
 
 % ========= Affine Strategy =========
 
@@ -304,12 +358,12 @@
             -0.045 &  -0.045 & -0.045 & -0.045 &  0  &  0
         \end{pmatrix}^T.
     \end{split}\]
-    \begin{figure*}
-       \centering
-       \includegraphics[width=0.7\textwidth]{affine.png}
-        \caption{Optimal affine strategy for difference initial assets}
-        \label{fig:affine}
-    \end{figure*}
+    % \begin{figure*}
+    %    \centering
+    %    \includegraphics[width=0.7\textwidth]{affine.png}
+    %     \caption{Optimal affine strategy for difference initial assets}
+    %     \label{fig:affine}
+    % \end{figure*}
     TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED 
 
 % ========= Relative Robust Strategy =========
