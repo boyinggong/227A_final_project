@@ -1,4 +1,4 @@
-\documentclass[14pt]{article} 
+\documentclass[13pt]{article} 
 
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
@@ -32,10 +32,8 @@
 
 \begin{document}
 \maketitle
-\thispagestyle{empty}
-\pagestyle{empty}
 
-\onecolumn
+% \twocolumn
 
 % ========================= PART 1 =========================
 
@@ -215,15 +213,15 @@
         \begin{split}
             \max_{x} \quad & x^{(6)}_{cash}(6) \\
             \text{s.t.} \quad 
-            & - 1.02x^{(3)}_{cp}(3) - 1.01x^{(5)}_{cre}(5) + 1.003x^{(5)}_{cash}(5) - x^{(1)}_{cash}(6) \geq \hat{b}_6(t+5),  \\
-            & x^{(1)}_{cash}(6)\geq 0
+            & - 1.02x^{(3)}_{cp}(3) - 1.01x^{(5)}_{cre}(5) + 1.003x^{(5)}_{cash}(5) - x^{(6)}_{cash}(6) \geq \hat{b}_6(t+5),  \\
+            & x^{(6)}_{cash}(6)\geq 0
         \end{split}
     \]
     Or equivalently,
     \begin{equation}\label{eq:naiveJune}
         \min_x c_6^Tx: A_6x+l_6\geq\hat{b}(t+5), 0\leq x\leq \bar{x}_5.
     \end{equation}
-    If feasible, this problem is trivial with $x^{(1)}_{cash}(6) = - 1.02x^{(3)}_{cp}(3) - 1.01x^{(5)}_{cre}(5) + 1.003x^{(5)}_{cash}(5) - \hat{b}_6(t+5).$
+    If feasible, this problem is trivial with $x^{(6)}_{cash}(6) = - 1.02x^{(3)}_{cp}(3) - 1.01x^{(5)}_{cre}(5) + 1.003x^{(5)}_{cash}(5) - \hat{b}_6(t+5)$ being the final cash amount in the end of June.
 
 
     % The maximization of the amount of cash at the end of the period is $58.4301$. The optimal strategy is 
