@@ -62,11 +62,11 @@ For a detailed problem formulation and variable definition, please refer to Appe
     \begin{equation}
         \min_x c_1^Tx: A_1x+l_1\geq\hat{b}(t), 0\leq x\leq \bar{x}_1.
     \end{equation}
-    where $l_1=\begin{pmatrix}C^{(1)}_{initial} & 0& 0& 0& 0& 0\end{pmatrix}^T$ represents the initial funds. Only the first of these decisions $x^{(1)}_{cre}(1)$, $x^{(1)}_{cp}(1)$ and $x^{(1)}_{cash}(1)$ will be implemented. Given the realization of the first month liability $\beta_1$, if the cash amount we reserved for liability is less than $\beta_1$, the strategy fails. If not, the extra part becomes the initial fund in Feburary.
+    where $l_1=\begin{pmatrix}C^{(1)}_{initial} & 0& 0& 0& 0& 0\end{pmatrix}^T$ represents the initial funds. Only the first of these decisions $x^{(1)}_{cre}(1)$, $x^{(1)}_{cp}(1)$ and $x^{(1)}_{cash}(1)$ will be implemented. Given the realization of the first month liability $\beta_1$, if the cash amount we reserved for liability is less than $\beta_1$, the strategy fails. If not, the extra part becomes the initial fund in February.
 
-    In Feburary ($i = 2$),  we re-estimate the AR model and the uncertainty model. The optimization problem for the second month is built on the updated parameters. And the number of decision variable is reduced by 3. That is, $x^{(2)}=(x^{(2)}_{cash}, x^{(2)}_{cp}, x^{(2)}_{cre}), x^{(2)}_{cash}\in\mathbb{R}^5, x^{(2)}_{cp}\in\mathbb{R}^2, x^{(2)}_{cre}\in\mathbb{R}^4$.
+    In February ($i = 2$),  we re-estimate the AR model and the uncertainty model. The optimization problem for the second month is built on the updated parameters. And the number of decision variable is reduced by 3. That is, $x^{(2)}=(x^{(2)}_{cash}, x^{(2)}_{cp}, x^{(2)}_{cre}), x^{(2)}_{cash}\in\mathbb{R}^5, x^{(2)}_{cp}\in\mathbb{R}^2, x^{(2)}_{cre}\in\mathbb{R}^4$.
 
-    Eventually, we will be solving six optimizaiton problems sequentially, one for each month($i = 1, \cdots, 6$):
+    Eventually, we will be solving six optimization problems sequentially, one for each month($i = 1, \cdots, 6$):
     \begin{equation}
         \min_x c_i^Tx: A_ix+l_i\geq\hat{b}(t+i-1), 0\leq x\leq \bar{x}_i.
     \end{equation}
@@ -75,39 +75,73 @@ For a detailed problem formulation and variable definition, please refer to Appe
 
 \subsection{Robust Strategy}
 
-    Consider the robust counterpart of the naive strategy. Assume the liability vector is a function of uncertainty. In month $i$, the liability is a realization from the set $\mathcal{U}(t+i-1)$. For the rolling strategy, we will be solving the following optimizaiton problems sequentially, one for each month($i = 1, \cdots, 6$):
-    \[\begin{split}
+    Consider the robust counterpart of the naive strategy. Assume the liability vector is a function of uncertainty. In month $i$, the liability is a realization from the set $\mathcal{U}(t+i-1)$. For the rolling strategy, we will be solving the following optimization problems sequentially, one for each month($i = 1, \cdots, 6$):
+    \begin{equation}\label{eq:robust}\begin{split}
         \min_x\ & c_i^Tx,\\
         \text{s.t. }& A_ix+l_i\geq b(t+i-1), \forall b(t+i-1)\in\mathcal{U}(t+i-1) ,\\
         & 0\leq x\leq \bar{x_i}.
-    \end{split}\]
+    \end{split}\end{equation}
     They are equivalent to the following LP problems:
-    \[\begin{split}
+    \begin{equation}\label{eq:robust_final}\begin{split}
         \min_x\ & c_i^Tx,\\
         \text{s.t. }& A_ix+l_i\geq b(t+i-1)+|B(t+i-1)|\textbf{1} ,\\
         & 0\leq x\leq \bar{x_i}.
-    \end{split}\]
+    \end{split}\end{equation}
 
 % ========= Affine Strategy =========
 
 \subsection{Affine Strategy}
 
-    For the affine strategy, we assume that the decision variables are linear functions of previous information. we will be solving the following optimizaiton problems sequentially ($i = 1, \cdots, 6$):
-    
+    For the affine strategy, we assume that the decision variables are linear functions of previous information. we will be solving the following optimization problems sequentially ($i = 1, \cdots, 6$):
+    \[\begin{split}
+       \max_x\ & \min_{u:||u||_\infty \leq 1} c_i^Tx(u) \\
+        \text{s.t. } & X_{cash},  X_{cp}, X_{cre} \text{ strictly lower-triangular,}\\
+        & A_i(x + X_iu) + l_i\geq b(t+i-1),\forall b(t+i-1) \in \mathcal{U}(t+i-1) ,\\
+        & 0\leq x+X_iu \leq \bar{x}_i.
+    \end{split}\]
+    They are equivalent to the following LP problems:
+    \[\begin{split}
+       \max_{x, X}\ & c_i^Tx - ||X^Tc_i||_1  \\
+        \text{s.t. } & X_{cash},  X_{cp}, X_{cre} \text{ strictly lower-triangular,}\\
+        & A_ix + l_i\geq  \hat{b}(t+i-1) + |B(t+i-1) - A_iX|\textbf{1}, \\
+        & 0\leq x+Xu \leq \bar{x}_i.
+    \end{split}\]   
 
+    \begin{figure*}
+        \label{fig:regret}
+        \begin{minipage}{0.5\textwidth}
+            \centering  
+            \includegraphics[width=\textwidth]{rolling_regret.png}
+        \end{minipage}
+        \begin{minipage}{0.5\textwidth}
+            \centering  
+            \includegraphics[width=\textwidth]{regret.png}
+        \end{minipage}
+        \caption{\emph{Left: The regret histogram for rolling strategy. Right: the regret histogram for non-rolling strategy.}}
+    \end{figure*}
+
+    \begin{table*}
+        \label{table:regret}
+        \centering
+        \begin{tabular}{l|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|}
+        \cline{2-9}
+        & \multicolumn{4}{|c|}{Rolling strategy} & \multicolumn{4}{|c|}{Non-rolling strategy} \\
+        \cline{2-9}
+        & Naive & Robust & Affine & Relative Robust & Naive & Robust & Affine & Relative Robust \\ 
+        \hline
+        \multicolumn{1}{|c|}{Fail Percentage}  & 95.2\% & 0\% & 0\% & 0\% & 33.3\% & 0\% & 0\% & 0\%\\
+        \hline
+        \end{tabular}
+        \caption{\emph{Percentage of bankrutcy (could not meet the liability) for rolling-based and non-rolling-based version of the four strategies.}}
+    \end{table*}
 
 % ========= Relative Robust Strategy =========
 
-    \begin{figure*}
-       \centering
-       \includegraphics[width=0.45\textwidth]{regret.png}
-        \caption{Regret histogram of more test data}
-        \label{fig:regret}
-    \end{figure*}
-
 \subsection{Relative Robust Strategy}
 
-    For the relative robust strategy, we consider minimizing the maximum regret for problem (\ref{eq:robust}). The regret function measures the difference between the performance of the solution with and without the full knowledge of the future. Assume we choose $x$ as decision vector, $u$ is the vector of realized parameter values and $x^*(u)$ is the optimal decision vector if $u$ is available. The regret associated with having chosen $x$ rather than $x^*(u)$ as decision vector is defined as follows,
+    For the relative robust strategy, we consider minimizing the maximum regret for problem (\ref{eq:robust}). For now, we first consider the problem without rolling, and omit the month subscripts for simplicity. We will prove that the relative robust strategy is actually equivalent to the robust strategy.
+
+    The regret function measures the difference between the performance of the solution with and without the full knowledge of the future. Assume we choose $x$ as decision vector, $u$ is the vector of realized parameter values and $x^*(u)$ is the optimal decision vector if $u$ is available. The regret associated with having chosen $x$ rather than $x^*(u)$ as decision vector is defined as follows,
     \[
         r(x, u) =  c^Tx - c^Tx^*(u).
     \]
@@ -163,34 +197,34 @@ For a detailed problem formulation and variable definition, please refer to Appe
 
     We can solve problem (\ref{eq:relative_final}) with a two-step procedure where we first solve an LP problem for $y$ (that is, solve $g(i)$), and then solve the LP problem for $x$ and $\gamma$.
 
-    Notice that the optimal solution of (\ref{eq:relative}) is equal to the optimal solution of the robust problem (\ref{eq:robust_final}). To see this fact, let $g = \max_i g(i)$. $g$ can be treated as a constant since $g(i)$ can be solved explicitly. Then (\ref{eq:relative}) is quivalent to the following
+    Notice that the optimal solution of (\ref{eq:relative}) is equal to the optimal solution of the robust problem (\ref{eq:robust_final}). To see this fact, let $g = \max_i g(i)$. $g$ can be treated as a constant since $g(i)$ can be solved explicitly. Then (\ref{eq:relative}) is equivalent to the following
     \[\begin{split}
         \min_{x, y}\ & c^Tx + g \\
         \text{s.t. } 
         & Ax+l\geq \hat{b}(t) + |B(t)|\textbf{1}, \\
         & 0\leq x\leq \bar{x}.
     \end{split}\]
-    which is the same as (\ref{eq:relative}). Note that the robust solution and relative robust optimization problem does not usually equivalent to each other without the linearity of object and contraints function. 
+    which is the same as (\ref{eq:robust_final}). Note that the robust solution and relative robust optimization problem does not usually equivalent to each other without the infinity norm assumption and the linearity of objective and constraints function.
 
 % ========================= PART 3 =========================
 
+\section{Initial Fund Analysis}
+
+Please see appendix \ref{apx:InitialFundAnalysis}.
+
 \section{\textbf{Evaluation Metrics}}
 
-\subsection{Test Data}
+    We now use the notion of regret to compare different strategies. We implemented the rolling-based and non-rolling-based version of the four strategies described in the last section. Recall the definition of regret in the last section:
+    \[
+        r(x, u) =  c^Tx - c^Tx^*(u).
+    \]
+    In the case where the strategy fails to meet the required liabilities, we let $c^Tx^*(u)$ be zero such that the reget is large.
 
-    \begin{table}[H]
-        \begin{tabular}{|l|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|}
-        \hline
-        & Naive & Robust & Affine & Relative Robust \\ 
-        \hline
-        Regret & 8.71 & 56.90 & 52.97 & 56.90 \\
-        \hline
-        \end{tabular}
-        \caption{Regret for test data}
-    \end{table}
+    Figure \ref{fig:regret} and Table \ref{table:regret} shows that the robust, affine and relative robust strategy have every small probability of bankruptcy ($\sim$ 0). The rolling naive strategy is very likely to fail. And the bankruptcy probability of non-rolling naive strategy is much lower than its rolling counterpart. 
 
-\subsection{More Test Data}
+    In contrast to the high regret of the non-rolling strategy for the robust problems, the rolling version of the robust, affine and relative robust strategy generally result in much smaller regret with the mean regret being around 3. 
 
+    Thus, we would recommend using the rolling version of the robust, affine and relative robust strategy (which are equivalent to each other) for the cash-flow management problem in order to minimize the regret.
 
 
 \bibliographystyle{plain}
@@ -210,7 +244,32 @@ For a detailed problem formulation and variable definition, please refer to Appe
 % ======================= Appendix B =======================
 
 
-\section{Analysis on not-rolling-based strategy}\label{apx:notRollingStrategy}
+\section{Initial Fund Analysis}\label{apx:InitialFundAnalysis}
+
+For simplicity, we only discuss how initial fund will influence the non-rolling strategy. The anlaysis for the rolling strategy will be similar.
+
+Figure \ref{fig:naive}, \ref{fig:robust} and \ref{fig:affine} show that if the company have sufficient amount of initial asset, say 70.3 million, the naive strategy and the robust strategy will not turn to credit line nor commercial paper. As we decrease the amount of initial funds, the optimal amount for credit line $X_{cre}$ and commercial paper $X_{cp}$ will stay 0. The optimal value of excess funds to be invested $X_{cash}$ will decrease linearly. This is because it is the only source to cover the liability and the constraints are linear. When the initial funds drops below a thredhold (12.739 million for naive strategy and 60.2 million for robust and affine strategy), the problem will become infeasible.
+
+    \begin{figure}[H]
+       \centering
+       \includegraphics[width=0.7\textwidth]{naive.png}
+        \caption{Optimal naive strategy for difference initial assets}
+        \label{fig:naive}
+    \end{figure}  
+
+    \begin{figure}[H]
+       \centering
+       \includegraphics[width=0.7\textwidth]{robust.png}
+        \caption{Optimal robust strategy for difference initial assets}
+        \label{fig:robust}
+    \end{figure}  
+
+    \begin{figure}[H]
+       \centering
+       \includegraphics[width=0.7\textwidth]{affine.png}
+        \caption{Optimal affine strategy for difference initial assets}
+        \label{fig:affine}
+    \end{figure}
 
 
 % ======================= Appendix C =======================

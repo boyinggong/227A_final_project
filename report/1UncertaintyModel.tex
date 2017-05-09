@@ -39,7 +39,7 @@
 	\beta_p=H_p\theta_p+\sigma_p\epsilon_p, \quad ||\epsilon_p||_\infty \leq 1.
 	\]
 
-	Notive that the noice in the autoregressive model is assumed to be genrated based on infinity-norm constraint. Following the noice generation procedure, we estimate the values of $\theta_p$ and $\sigma_p$ by minimizing the infinity norm of the error
+	Notice that the noise in the autoregressive model is assumed to be generated based on infinity-norm constraint. Following the noise generation procedure, we estimate the values of $\theta_p$ and $\sigma_p$ by minimizing the infinity norm of the error
 	\[
 	\min_{\hat{\theta}_p}||\beta_p-\hat{\beta}_p||_\infty, \quad
     \text{s.t. }\hat{\beta}_p = H_p\hat{\theta}_p,
@@ -65,15 +65,15 @@
 
      \begin{figure*}
         \centering
-        \includegraphics[width=0.7\textwidth]{cv.png}
-        \caption{\emph{Cross-validation Results for order selection. Left: The cross-validation MAE for a variety of $p$'s. Right: The cross-validation out-of-bound error for a variety of $p$'s. The minimum error are marked red.}}
+        \includegraphics[width=0.9\textwidth]{cv.png}
+        \caption{\emph{Cross-validation Results for order selection. Left: The cross-validation MAE for a variety of $p$'s. Right: The cross-validation out-of-bound error for a variety of $p$'s. The minimum errors are marked red.}}
         \label{fig:cv_result}
     \end{figure*} 
 
     \begin{figure*}
         \centering
-        \includegraphics[width=0.7\textwidth]{uncertaintyModel.png}
-        \caption{\emph{Visualation of fitted model. Left: The blue line show sthe historical liability data, and the red line shows the fitted value of our model using the order p = 2. Right: The blue line shows the estimation of historical noise $\hat{\sigma}$. Note that the actual prediction error will be multiplied by $\hat{\sigma}$.}}
+        \includegraphics[width=0.9\textwidth]{uncertaintyModel.png}
+        \caption{\emph{Visualisation of the fitted model. Left: The blue line show the historical liability data, and the red line shows the fitted value of our model using the order p = 2. Right: The blue line shows the estimation of historical noise $\hat{\sigma}$. Note that the actual prediction error will be multiplied by $\hat{\sigma}$.}}
         \label{fig:uncertaintyModel}
     \end{figure*} 
 
@@ -84,7 +84,7 @@
     \[\quad|\epsilon(t+1)|\leq 1.\]
     The solution for the 60 historical data is
     $\sigma^* = 3.243, \theta^*_1 = 0.449, \theta^*_2 = 0.533.$
-    Notice that for the rolling-horizon based strategy, the above estimation will only used in January. In future months, the estimation will be updated given new liability data.
+    Notice that for the rolling-horizon based strategy, the above estimation will only be used in January. In future months, the estimation will be updated given new liability data.
 
 \end{enumerate}
 
@@ -108,4 +108,4 @@
             1.925 & 2.098 & 1.846 & 2.382 & 1.456 & 3.243
         \end{pmatrix}.
     \]
-    Similar to the AR model parameter, for the rolling-horizon based strategy, the above estimation will only used in January. In future months, the estimation will be updated with the updated AR model.
+    Similar to the AR model parameter, for the rolling-horizon based strategy, the above estimation will only be used in January. In future months, the estimation will be updated with the updated AR model.
