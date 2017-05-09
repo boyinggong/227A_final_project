@@ -1,0 +1,146 @@
+
+\section{Optimization Problem Formulation}\label{apx:problemFormulation}
+
+\subsection{Naive Strategy}
+
+    Let $C^{(1)}_{initial} = 70.3$ be the amount that the company has at the beginning of the horizon. We assume the future liability be $\hat{b}(t)$ without error. We now describe the rolling-horizon naive strategy.
+    
+    In January ($i = 1$), let $x^{(1)}=(x^{(1)}_{cash}, x^{(1)}_{cp}, x^{(1)}_{cre})$ be the decision variables $, x^{(1)}_{cash}\in\mathbb{R}^6, x^{(1)}_{cp}\in\mathbb{R}^3, x^{(1)}_{cre}\in\mathbb{R}^5$. The company can draw an amount $x^{(1)}_{cre}(1)$ from its line of credit and issue an amount $x^{(1)}_{cp}(1)$ of commercial paper. Together with the initial asset $C^{(1)}_{initial}$, $x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial}$ will be used for investment and meeting the liabilities. The balance equation is as follows, 
+    \[
+        x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial}\geq x^{(1)}_{cash}(1) + \hat{b}_1(t).
+    \]
+    Similarly, we can get the equation for other months and obtain the following LP formulation:
+    \[
+        \begin{split}
+            \max_{x} \quad & x^{(1)}_{cash}(6) \\
+            \text{s.t.} \quad 
+            & x^{(1)}_{cre}(1) + x^{(1)}_{cp}(1)+C^{(1)}_{initial}-x^{(1)}_{cash}(1) \geq \hat{b}_1(t), \\
+            & x^{(1)}_{cre}(2) + x^{(1)}_{cp}(2) -1.01x^{(1)}_{cre}(1) + 1.003x_{cash}(1) -x^{(1)}_{cash}(2) \geq \hat{b}_2(t),  \\
+            & x^{(1)}_{cre}(3) + x^{(1)}_{cp}(3) -1.01x^{(1)}_{cre}(2) + 1.003x_{cash}(2) -x^{(1)}_{cash}(3) \geq \hat{b}_3(t),  \\
+            & x^{(1)}_{cre}(4) - 1.02x^{(1)}_{cp}(1) - 1.01x^{(1)}_{cre}(3) + 1.003x_{cash}(3) - x^{(1)}_{cash}(4) \geq \hat{b}_4(t),  \\
+            & x^{(1)}_{cre}(5) - 1.02x^{(1)}_{cp}(2) - 1.01x^{(1)}_{cre}(4) + 1.003x_{cash}(4) - x^{(1)}_{cash}(5) \geq \hat{b}_5(t),  \\
+            & - 1.02x^{(1)}_{cp}(3) - 1.01x^{(1)}_{cre}(5) + 1.003x^{(1)}_{cash}(5) - x^{(1)}_{cash}(6) \geq \hat{b}_6(t),  \\
+            & 0 \leq x^{(1)}_{cre}(i) \leq 1, i = 1, \cdots, 5.\\
+            & x^{(1)}_{cp} \geq 0, i = 1, 2, 3.\\
+            & x^{(1)}_{cash}(i)\geq 0, i = 1, \cdots, 6.
+        \end{split}
+    \]
+    Write this in LP format:
+    \begin{equation}\label{eq:naiveJan}
+        \min_x c_1^Tx: A_1x+l_1\geq\hat{b}(t), 0\leq x\leq \bar{x}_1.
+    \end{equation}
+    where $l_1 = \begin{pmatrix}C^{(1)}_{initial} & 0& 0& 0& 0& 0\end{pmatrix}^T$ and 
+    \[
+        A_1
+        = 
+        \begin{pmatrix}
+            a_1^T \\
+            a_2^T \\
+            a_3^T \\
+            a_4^T \\
+            a_5^T \\
+            a_6^T
+        \end{pmatrix}
+        =
+        \begin{pmatrix}
+            -1    &   0    &   0    &  0    &  0    &  0    &  1    &  0   &  0   &  1     &   0   &  0   &  0   &  0   \\
+            1.003 &  -1    &   0    &  0    &  0    &  0    &  0    &  1   &  0   &  -1.01 &   1   &  0   &  0   &  0   \\
+            0     & 1.003  &   -1   &  0    &  0    &  0    &  0    &  0   &  1   &  0     & -1.01 &  1   &  0   &  0   \\
+            0     &  0     & 1.003  &   -1  &  0    &  0    & -1.02 &  0   &  0   &  0     &  0    & -1.01&  1   &  0   \\
+            0     &  0     &  0     & 1.003 &  -1   &  0    &  0    &-1.02 &  0   &  0     &  0    &  0   &-1.01 &  1   \\
+            0     &  0     &  0     &  0    & 1.003 &  -1   &  0    &  0   &-1.02 &  0     &  0    &  0   &  0   &-1.01
+        \end{pmatrix}.
+    \]
+
+    After solving the optimization problem (\ref{eq:naiveJan}), only the first of these decisions $x^{(1)}_{cre}(1)$, $x^{(1)}_{cp}(1)$ and $x^{(1)}_{cash}(1)$ will be implemented. 
+
+    Assume the realization of the liability of January is $\beta_1$. If $x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial} - x^{(1)}_{cash}(1) \leq \beta_1$, the company will not be able to meet the required liability, and the strategy would fail. If $x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial} - x^{(1)}_{cash}(1) \geq \beta_1$, the company will have $C^{(2)}_{initial} =  x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial} - x^{(1)}_{cash}(1) - \beta_1$ at the beginning of Feburary. Moreover, we can use $\beta_1$ to get the updated uncertainty model $\hat{b}(t+1)\in\mathbb{R}^5$ and $B(t+1)\in\mathbb{R}^{5\times5}$.
+
+    In Feburary ($i = 2$), let $x^{(2)}=(x^{(2)}_{cash}, x^{(2)}_{cp}, x^{(2)}_{cre})$ be the decision variables, $x^{(2)}_{cash}\in\mathbb{R}^5, x^{(2)}_{cp}\in\mathbb{R}^2, x^{(2)}_{cre}\in\mathbb{R}^4$. The company can draw an amount $x^{(2)}_{cre}(2)$ from its line of credit and issue an amount $x^{(2)}_{cp}(2)$ of commercial paper. In addition, principal plus interest of $1.01x^{(1)}_{cre}(1)$ is due on the line of credit and $1.003x^{(1)}_{cash}(1)$ is received on the invested excess funds. Thus, $1.003x^{(1)}_{cash}(1)+x^{(2)}_{cre}(2)+x^{(2)}_{cp}(2)+C^{(2)}_{initial}$ will be used for investment, meeting the liabilities and payment of credit line. The balance equation is as follows, 
+        \[
+            1.003x^{(1)}_{cash}(1)+x^{(2)}_{cre}(2)+x^{(2)}_{cp}(2)+C^{(2)}_{initial}\geq x^{(2)}_{cash}(2) + \hat{b}_2(t+1)+1.01x^{(2)}_{cre}(1).
+        \]
+    The equation for other months are the same as January. We can obtain the following LP fomulation:
+    \begin{equation}\label{eq:naiveFeb}
+        \min_x c_2^Tx: A_2x+l_2\geq\hat{b}(t+1), 0\leq x\leq \bar{x}_2.
+    \end{equation}
+    where $l_2 = \begin{pmatrix}C^{(2)}_{initial} & 0& 0& 0& 0\end{pmatrix}^T$.
+
+    Similarly, only $x^{(2)}_{cre}(2)$, $x^{(2)}_{cp}(2), x^{(2)}_{cash}(2)$ will be implemented. We can then solve similar problems in the following months and obtain the decision variables. Finally in June(i = 6), there is only one decision variable $x^{(6)}_{cash}(6)$, and we need to solve the following problem:
+    \[
+        \begin{split}
+            \max_{x} \quad & x^{(6)}_{cash}(6) \\
+            \text{s.t.} \quad 
+            & - 1.02x^{(3)}_{cp}(3) - 1.01x^{(5)}_{cre}(5) + 1.003x^{(5)}_{cash}(5) - x^{(6)}_{cash}(6) \geq \hat{b}_6(t+5),  \\
+            & x^{(6)}_{cash}(6)\geq 0
+        \end{split}
+    \]
+    Or equivalently,
+    \begin{equation}\label{eq:naiveJune}
+        \min_x c_6^Tx: A_6x+l_6\geq\hat{b}(t+5), 0\leq x\leq \bar{x}_5.
+    \end{equation}
+    If feasible, this problem is trivial with optimal solution being $x^{(6)}_{cash}(6) = - 1.02x^{(3)}_{cp}(3) - 1.01x^{(5)}_{cre}(5) + 1.003x^{(5)}_{cash}(5) - \hat{b}_6(t+5)$. The final cash amount in the end of June is 
+    \[- 1.02x^{(3)}_{cp}(3) - 1.01x^{(5)}_{cre}(5) + 1.003x^{(5)}_{cash}(5) - \beta_6.\]
+
+    Notice that the above procedure is equivalent solving six optimizaiton problems sequentially, one for each month($i = 1, \cdots, 6$):
+    \begin{equation}\label{naiveAll}
+        \min_x c_i^Tx: A_ix+l_i\geq\hat{b}(t+i-1), 0\leq x\leq \bar{x}_i.
+    \end{equation}
+
+\section{Robust Strategy}
+
+    Consider the robust counterpart of the naive strategy (\ref{naiveAll}). Assume the liability vector is a function of uncertainty. In month $i$, the liability is a realization from the set $\mathcal{U}(t+i-1)$. For the rolling strategy, we will be solving the following optimizaiton problems sequentially, one for each month($i = 1, \cdots, 6$):
+    \begin{equation}\label{eq:robust}
+       \min_x c_i^Tx: A_ix+l_i\geq b(t+i-1), b(t)\in\mathcal{U}(t+i-1) ,0\leq x\leq \bar{x}_i
+    \end{equation}
+    The constrains $A_ix+l_i\geq b(t+i-1), b(t)\in\mathcal{U}(t+i-1)$ can be written as follows based on the autoregressive model assumption
+    \[\begin{split}
+        & A_ix+l_i\geq b(t+i-1), b(t)\in\mathcal{U}(t+i-1), \forall ||u||_\infty \leq 1 \\
+        \iff & A_ix+l_i\geq b(t+i-1) + \max_{||u||_\infty \leq 1}B(t+i-1)u \\
+        \iff & A_ix+l_i\geq b(t+i-1) + |B(t+i-1)|\textbf{1}
+    \end{split}\]
+    Thus, we can formulate the model as
+    \begin{equation}\label{eq:robust_final}
+        \min_x c_i^Tx: A_ix+l_i\geq b(t+i-1)+|B(t+i-1)|\textbf{1}, 0\leq x\leq \bar{x_i}.
+    \end{equation}
+
+\section{Affine Strategy}
+
+    We now omit the month subcripts for simplicity. Assume that at each time $t$, the information in previous time points (up to $t-1$) are available. We further assume that the decision variables are linear functions of previous information.
+    \[
+        x_{cash}(u) = x_{cash} + X_{cash}u,
+    \]
+    \[ 
+        x_{cp}(u) = x_{cp} + X_{cp}u,
+    \]
+    \[ 
+        x_{cre}(u) = x_{cre} + X_{cre}u.
+    \]
+    Let $X=(X_{cash}^T, X_{cp}^T, X_{cre}^T)^T$, the optimization problem can be formulated as 
+    \[\begin{split}
+       \max_x\ & \min_{u:||u||_\infty \leq 1} c^Tx(u) \\
+        \text{s.t. } & X_{cash},  X_{cp}, X_{cre} \text{ strictly lower-triangular,}\\
+        & A(x + Xu) + l\geq b(t) + B(t)u,\forall b(t) \in \mathcal{U},\\
+        & 0\leq x+Xu \leq \bar{x}.
+    \end{split}\]
+    The constraint $A(x + Xu) + l\geq b(t) + B(t)u,\forall b(t) \in \mathcal{U}$ can be written as follows
+    \[\begin{split}
+        & A(x + Xu) + l\geq \hat{b}(t) + B(t)u,\forall ||u||_\infty\leq 1 \\
+        \iff & Ax+l\geq \hat{b}(t) + (B(t)-AX)u, \forall ||u||_\infty \leq 1 \\
+        \iff & Ax+l\geq \hat{b}(t) + \max_{||u||_\infty \leq 1}(B(t)-AX)u \\
+        \iff & Ax+l\geq \hat{b}(t) + |(B(t)-AX)|\textbf{1}
+    \end{split}\]
+    The objective function $\min_{u:||u||_\infty \leq 1} c^Tx(u)$ is equivalent to
+    \[\begin{split}
+    & c^Tx - \max_{u:||u||_\infty \leq 1} c^TX(-u) \\
+    = & c^Tx - ||X^Tc||_1
+    \end{split}\]
+    Thus, we can formulate the affine strategy as the following LP problem
+    \[\begin{split}
+       \max_{x, X}\ & c^Tx - ||X^Tc||_1  \\
+        \text{s.t. } & X_{cash},  X_{cp}, X_{cre} \text{ strictly lower-triangular,}\\
+        & Ax + l\geq  \hat{b}(t) + |B(t) - AX|\textbf{1}, 0\leq x+Xu \leq \bar{x}.
+    \end{split}\]
+
+
+

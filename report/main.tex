@@ -1,4 +1,4 @@
-\documentclass[13pt]{article} 
+\documentclass{article} 
 
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
@@ -11,11 +11,14 @@
 \usepackage{amssymb}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
+% \usepackage{titlesec}
+\usepackage[shortlabels]{enumitem}
  
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
 \newtheorem{lemma}[theorem]{Lemma}
 \setcounter{MaxMatrixCols}{20}
+
 
 \usepackage{geometry}
  \geometry{
@@ -31,338 +34,67 @@
 \author{Boying Gong (SID: 24967354)}
 
 \begin{document}
+
+\twocolumn
+
 \maketitle
 
-% \twocolumn
 
 % ========================= PART 1 =========================
 
-
-\section{\textbf{Uncertainty Model}}
-
-\subsection{Auto-Regressive Model Parameter Estimation}
-
-\subsubsection{Formulation of the Optimization Problem} 
-
-    Denote the number of historical data as $n$ ($n=60$ in our case). We write the auto-regressive model in the matrix form (note that the model depends on the order $p$)
-	\[
-	\beta_p = \begin{pmatrix} 
-		\beta(p+1)  \\
-		\beta(p+2)  \\
-		\vdots \\
-		\beta(n) 
-	\end{pmatrix},
-	\theta_p = \begin{pmatrix} 
-		\theta(1)  \\
-		\vdots \\
-		\theta(p) 
-	\end{pmatrix},
-    \epsilon_p = \begin{pmatrix} 
-		\epsilon(p+1)  \\
-		\epsilon(p+2)  \\
-		\vdots \\
-		\epsilon(n) 
-	\end{pmatrix},
-	\]
-    \[
-    H_p = \begin{pmatrix} 
-        \beta(p)   & \beta(p-1) & \cdots & \beta(1)   \\
-        \beta(p+1) & \beta(p)   & \cdots & \beta(2)   \\
-        \vdots     & \vdots     & \ddots & \vdots     \\
-        \beta(n-1) & \beta(n-2) & \cdots & \beta(n-p) \\
-    \end{pmatrix}.
-    \]
-	\[ 
-	\beta_p=H_p\theta_p+\sigma_p\epsilon_p, \quad ||\epsilon_p||_\infty \leq 1.
-	\]
-
-	Now we estimate the values of $\theta_p$ and $\sigma_p$ by minimizing the infinity norm of the error
-	\[
-	\min_{\hat{\theta}_p}||\beta_p-\hat{\beta}_p||_\infty, \quad
-    \text{s.t. }\hat{\beta}_p = H_p\hat{\theta}_p,
-	\]
-	This is equivalent to the following LP problem, where we use $\hat{\sigma}$ as an estimate of $\sigma$.
-	\begin{equation}\label{eq:ar_opt} 
-	\min_{\hat{\theta}_p, \hat{\sigma}_p}\hat{\sigma}_p, \quad
-    \text{s.t. }\hat{\beta}_p=H_p\hat{\theta}_p,|\beta_p-\hat{\beta}_p|\preceq\hat{\sigma}_p.
-	\end{equation}
-
-\subsubsection{Order Selection for the Auto-Regressive Model} 
-
-    The order $p$ of the autoregressive model needs to be determined. Because our goal is to predict the cash flow requirement in the next 6 months, prediction error is important. We use cross-validation on a rolling basis to calculate the prediction error for $1\leq p\leq 30$. The cross-validation procedure is described as follows.\cite{cvTs} For each $p$, 
-    \begin{enumerate}
-    	\item Fit the model to the data $\beta_1,\cdots,\beta_t$ and let $\hat{\beta}^{(t)}_{t+1},\cdots,\hat{\beta}^{(t)}_{t+6}$ denote the forecasts of the next 6 months. Then compute the error ($e^{(t)}_{t+i} = \beta_{t+i}- \hat{\beta}^{(t)}_{t+i}$) for the forecast observations. 
-        \item Repeat step 1 for $t=n-15,\cdots,n-6$ (10-fold). 
-        \item Compute : (I) the proportion of absolute error $|e^{(t)}_{t+i}|$ that are greater than the $\sigma$ estimation $|\sigma^{(t)}|$. We call it out-of-bound error.
-        (II) MAE (Mean Absolute Error) from the errors $e^{(t)}_{t+i}, t=n-15,\cdots,n-6,i=1,\cdots,6$. 
-    \end{enumerate}
-    Then, we choose $p$ with the smallest out-of-bound error. For $p$'s with the same out-of-bound error, we choose $p$ with the smallest MAE.
-
-\subsubsection{Results}
-
-     \begin{figure*}
-        \centering
-        \includegraphics[width=0.8\textwidth]{cv.png}
-        \caption{Cross-validation Results for Order selection}
-        \label{fig:cv_result}
-    \end{figure*} 
-
-    The cross-validation results are shown in Figure \ref{fig:cv_result}, the minimum  out-of-bound error and MAE are both attained when $p=2$. We use $p=2$ to solve the optimization problem (\ref{eq:ar_opt}). The solution is
-    \[\sigma^* = 3.24341242878, \theta^*_1 = 0.44904669, \theta^*_2 = 0.53272938.\]
-    And the corresponding auto-regressive model is given by
-    \begin{equation}\label{eq:ar-est}
-    	\beta(t+1) = \theta_1^*\beta(t) + \theta_2^*\beta(t-1)+\sigma^*\epsilon(t+1),
-    \end{equation}
-    \[\quad|\epsilon(t+1)|\leq 1.\]
-
-\subsection{Uncertainty Model}
-
-    Let $u = (\epsilon(t+1), \cdots, \epsilon(t+T))^T$. With the auto-regressive model (\ref{eq:ar-est}), $\hat{b}(t)$ and $B(t)$ can be expressed as a function of $\beta(t), \beta(t-1), \theta_1^*, \theta_2^*$ and $\sigma^*$ using recursive substitution. The derivation is given in Appendix \ref{apx:recursive substitution}. From the historical data, $\beta(t) = 1.4880$ and $\beta(t-1)=3.5112$. The numerical value is given below
-    \[
-	   \hat{b}(t) = 
-        \begin{pmatrix}
-    	2.539 & 1.933 & 2.220 & 2.027 & 2.093 & 2.020
-	   \end{pmatrix}^T,
-    \]
-    \[
-	   B(t) = 
-        \begin{pmatrix}
-    	   3.243 & 0 & 0 & 0 & 0 & 0 \\
-            1.456 & 3.243 & 0 & 0 & 0 & 0 \\
-            2.382 & 1.456 & 3.243 & 0 & 0 & 0 \\
-            1.846 & 2.382 & 1.456 & 3.243 & 0 & 0 \\
-            2.098 & 1.846 & 2.382 & 1.456 & 3.243 & 0 \\
-            1.925 & 2.098 & 1.846 & 2.382 & 1.456 & 3.243
-        \end{pmatrix}.
-    \]
-
+\input{1UncertaintyModel.tex}
 
 % ========================= PART 2 =========================
 
 \section{\textbf{Decision Making}}
 
+In this section, we provide the brief formulation of four strategies built in a rolling horizon fashion. They are: the naive strategy, the robust strategy, the rolling strategy and the relative robust strategy. We will show that the later three actually results in the same decision for rolling-horizon based implementation.
+
+For a detailed problem formulation and variable definition, please refer to Appendix \ref{apx:problemFormulation}.
+
 % ================== Naive Strategy ==================
 
 \subsection{Naive Strategy}
 
-    Let $C^{(1)}_{initial} = 70.3$ be the amount that the company has at the beginning of the horizon. We assume the future liability be $\hat{b}(t)$ without error. We now describe the rolling-horizon naive strategy.
-    
-    In January ($i = 1$), let $x^{(1)}=(x^{(1)}_{cash}, x^{(1)}_{cp}, x^{(1)}_{cre})$ be the decision variables $, x^{(1)}_{cash}\in\mathbb{R}^6, x^{(1)}_{cp}\in\mathbb{R}^3, x^{(1)}_{cre}\in\mathbb{R}^5$. The company can draw an amount $x^{(1)}_{cre}(1)$ from its line of credit and issue an amount $x^{(1)}_{cp}(1)$ of commercial paper. Together with the initial asset $C^{(1)}_{initial}$, $x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial}$ will be used for investment and meeting the liabilities. The balance equation is as follows, 
-    \[
-        x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial}\geq x^{(1)}_{cash}(1) + \hat{b}_1(t).
-    \]
-    Similarly, we can get the equation for other months and obtain the following LP formulation:
-    \[
-        \begin{split}
-            \max_{x} \quad & x^{(1)}_{cash}(6) \\
-            \text{s.t.} \quad 
-            & x^{(1)}_{cre}(1) + x^{(1)}_{cp}(1)+C^{(1)}_{initial}-x^{(1)}_{cash}(1) \geq \hat{b}_1(t), \\
-            & x^{(1)}_{cre}(2) + x^{(1)}_{cp}(2) -1.01x^{(1)}_{cre}(1) + 1.003x_{cash}(1) -x^{(1)}_{cash}(2) \geq \hat{b}_2(t),  \\
-            & x^{(1)}_{cre}(3) + x^{(1)}_{cp}(3) -1.01x^{(1)}_{cre}(2) + 1.003x_{cash}(2) -x^{(1)}_{cash}(3) \geq \hat{b}_3(t),  \\
-            & x^{(1)}_{cre}(4) - 1.02x^{(1)}_{cp}(1) - 1.01x^{(1)}_{cre}(3) + 1.003x_{cash}(3) - x^{(1)}_{cash}(4) \geq \hat{b}_4(t),  \\
-            & x^{(1)}_{cre}(5) - 1.02x^{(1)}_{cp}(2) - 1.01x^{(1)}_{cre}(4) + 1.003x_{cash}(4) - x^{(1)}_{cash}(5) \geq \hat{b}_5(t),  \\
-            & - 1.02x^{(1)}_{cp}(3) - 1.01x^{(1)}_{cre}(5) + 1.003x^{(1)}_{cash}(5) - x^{(1)}_{cash}(6) \geq \hat{b}_6(t),  \\
-            & 0 \leq x^{(1)}_{cre}(i) \leq 1, i = 1, \cdots, 5.\\
-            & x^{(1)}_{cp} \geq 0, i = 1, 2, 3.\\
-            & x^{(1)}_{cash}(i)\geq 0, i = 1, \cdots, 6.
-        \end{split}
-    \]
-    Write this in LP format:
-    \begin{equation}\label{eq:naiveJan}
+    Let $C^{(1)}_{initial} = 70.3$ be the amount that the company has at the beginning of the horizon. We assume the future liability be $\hat{b}(t)$ without error.
+
+    In January (i = 1), let $x^{(1)}=(x^{(1)}_{cash}, x^{(1)}_{cp}, x^{(1)}_{cre})$ be the decision variables $, x^{(1)}_{cash}\in\mathbb{R}^6, x^{(1)}_{cp}\in\mathbb{R}^3, x^{(1)}_{cre}\in\mathbb{R}^5$. We can write the optimization problem as follows.
+    \begin{equation}
         \min_x c_1^Tx: A_1x+l_1\geq\hat{b}(t), 0\leq x\leq \bar{x}_1.
     \end{equation}
-    where $l_1 = \begin{pmatrix}C^{(1)}_{initial} & 0& 0& 0& 0& 0\end{pmatrix}^T$ and 
-    \[
-        A_1
-        = 
-        \begin{pmatrix}
-            a_1^T \\
-            a_2^T \\
-            a_3^T \\
-            a_4^T \\
-            a_5^T \\
-            a_6^T
-        \end{pmatrix}
-        =
-        \begin{pmatrix}
-            -1    &   0    &   0    &  0    &  0    &  0    &  1    &  0   &  0   &  1     &   0   &  0   &  0   &  0   \\
-            1.003 &  -1    &   0    &  0    &  0    &  0    &  0    &  1   &  0   &  -1.01 &   1   &  0   &  0   &  0   \\
-            0     & 1.003  &   -1   &  0    &  0    &  0    &  0    &  0   &  1   &  0     & -1.01 &  1   &  0   &  0   \\
-            0     &  0     & 1.003  &   -1  &  0    &  0    & -1.02 &  0   &  0   &  0     &  0    & -1.01&  1   &  0   \\
-            0     &  0     &  0     & 1.003 &  -1   &  0    &  0    &-1.02 &  0   &  0     &  0    &  0   &-1.01 &  1   \\
-            0     &  0     &  0     &  0    & 1.003 &  -1   &  0    &  0   &-1.02 &  0     &  0    &  0   &  0   &-1.01
-        \end{pmatrix}.
-    \]
+    where $l_1=\begin{pmatrix}C^{(1)}_{initial} & 0& 0& 0& 0& 0\end{pmatrix}^T$ represents the initial funds. Only the first of these decisions $x^{(1)}_{cre}(1)$, $x^{(1)}_{cp}(1)$ and $x^{(1)}_{cash}(1)$ will be implemented. Given the realization of the first month liability $\beta_1$, if the cash amount we reserved for liability is less than $\beta_1$, the strategy fails. If not, the extra part becomes the initial fund in Feburary.
 
-    After solving the optimization problem (\ref{eq:naiveJan}), only the first of these decisions $x^{(1)}_{cre}(1)$, $x^{(1)}_{cp}(1)$ and $x^{(1)}_{cash}(1)$ will be implemented. 
+    In Feburary ($i = 2$),  we re-estimate the AR model and the uncertainty model. The optimization problem for the second month is built on the updated parameters. And the number of decision variable is reduced by 3. That is, $x^{(2)}=(x^{(2)}_{cash}, x^{(2)}_{cp}, x^{(2)}_{cre}), x^{(2)}_{cash}\in\mathbb{R}^5, x^{(2)}_{cp}\in\mathbb{R}^2, x^{(2)}_{cre}\in\mathbb{R}^4$.
 
-    Assume the realization of the liability of January is $\beta_1$. If $x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial} - x^{(1)}_{cash}(1) \leq \beta_1$, the company will not be able to meet the required liability, and the strategy will fail. If $x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial} - x^{(1)}_{cash}(1) \geq \beta_1$, the company will have $C^{(2)}_{initial} =  x^{(1)}_{cre}(1)+x^{(1)}_{cp}(1)+C^{(1)}_{initial} - x^{(1)}_{cash}(1) - \beta_1$ at the beginning of Feburary. Moreover, we can use $\beta_1$ to get the updated uncertainty model $\hat{b}(t+1)\in\mathbb{R}^5$ and $B(t+1)\in\mathbb{R}^{5\times5}$.
-
-    In Feburary ($i = 2$), let $x^{(2)}=(x^{(2)}_{cash}, x^{(2)}_{cp}, x^{(2)}_{cre})$ be the decision variables, $x^{(2)}_{cash}\in\mathbb{R}^5, x^{(2)}_{cp}\in\mathbb{R}^2, x^{(2)}_{cre}\in\mathbb{R}^4$. The company can draw an amount $x^{(2)}_{cre}(2)$ from its line of credit and issue an amount $x^{(2)}_{cp}(2)$ of commercial paper. In addition, principal plus interest of $1.01x^{(1)}_{cre}(1)$ is due on the line of credit and $1.003x^{(1)}_{cash}(1)$ is received on the invested excess funds. Thus, $1.003x^{(1)}_{cash}(1)+x^{(2)}_{cre}(2)+x^{(2)}_{cp}(2)+C^{(2)}_{initial}$ will be used for investment, meeting the liabilities and payment of credit line. The balance equation is as follows, 
-        \[
-            1.003x^{(1)}_{cash}(1)+x^{(2)}_{cre}(2)+x^{(2)}_{cp}(2)+C^{(2)}_{initial}\geq x^{(2)}_{cash}(2) + \hat{b}_2(t+1)+1.01x^{(2)}_{cre}(1).
-        \]
-    The equation for other months will be the same as the optimization problem in January. We can obtain the following LP fomulation:
-    \begin{equation}\label{eq:naiveFeb}
-        \min_x c_2^Tx: A_2x+l_2\geq\hat{b}(t+1), 0\leq x\leq \bar{x}_2.
+    Eventually, we will be solving six optimizaiton problems sequentially, one for each month($i = 1, \cdots, 6$):
+    \begin{equation}
+        \min_x c_i^Tx: A_ix+l_i\geq\hat{b}(t+i-1), 0\leq x\leq \bar{x}_i.
     \end{equation}
-    where $l_2 = \begin{pmatrix}C^{(2)}_{initial} & 0& 0& 0& 0\end{pmatrix}^T$.
-
-    Similarly, only $x^{(2)}_{cre}(2)$, $x^{(2)}_{cp}(2), x^{(2)}_{cash}(2)$ will be implemented. We can then solve similar problems in the following months and obtain the decision variables. Finally in June(i = 6), there will be only one decision variable $x^{(6)}_{cash}(6)$, and we need to solve the following problem:
-    \[
-        \begin{split}
-            \max_{x} \quad & x^{(6)}_{cash}(6) \\
-            \text{s.t.} \quad 
-            & - 1.02x^{(3)}_{cp}(3) - 1.01x^{(5)}_{cre}(5) + 1.003x^{(5)}_{cash}(5) - x^{(6)}_{cash}(6) \geq \hat{b}_6(t+5),  \\
-            & x^{(6)}_{cash}(6)\geq 0
-        \end{split}
-    \]
-    Or equivalently,
-    \begin{equation}\label{eq:naiveJune}
-        \min_x c_6^Tx: A_6x+l_6\geq\hat{b}(t+5), 0\leq x\leq \bar{x}_5.
-    \end{equation}
-    If feasible, this problem is trivial with $x^{(6)}_{cash}(6) = - 1.02x^{(3)}_{cp}(3) - 1.01x^{(5)}_{cre}(5) + 1.003x^{(5)}_{cash}(5) - \hat{b}_6(t+5)$ being the final cash amount in the end of June.
-
-
-    % The maximization of the amount of cash at the end of the period is $58.4301$. The optimal strategy is 
-    % \[
-    %     x_{cash} = 
-    %     \begin{pmatrix}
-    %     7.761 & 66.032 & 64.010 & 62.175 & 60.269 & 58.430
-    %     \end{pmatrix}^T,
-    % \]
-    % $x_{cp}$ and $x_{cre}$ equal to 0.
-    
-    % The results show that if the company have sufficient amount of initial asset, say 70.3 million, the naive strategy will not turn to credit line nor commercial paper.
-
-    % Figure \ref{fig:naive} shows that as we decrease the amount of initial funds, the optimal amount for credit line $X_{cre}$ and commercial paper $X_{cp}$ will stay 0. The optimal value of excess funds to be invested $X_{cash}$ will decrease linearly. This is because it is the only source to cover the liability and the constraints are linear. When the initial funds drops below 12.739 million, the problem will become infeasible.
-    % \begin{figure*}
-	   % \centering
-	   % \includegraphics[width=0.7\textwidth]{naive.png}
-    %     \caption{Optimal naive strategy for difference initial assets}
-    %     \label{fig:naive}
-    % \end{figure*}  
 
 % ================== Robust Strategy ==================
 
 \subsection{Robust Strategy}
 
-    We now consider the robust counterpart of the problem
-    \begin{equation}\label{eq:robust}
-	   \min_x c^Tx: Ax+l\geq b(t), b(t)\in\mathcal{U}(t) ,0\leq x\leq \bar{x}
-    \end{equation}
-    The constrains $Ax+l\geq b(t), b(t)\in\mathcal{U}(t)$ can be written as follows based on the autoregressive model assumption
+    Consider the robust counterpart of the naive strategy. Assume the liability vector is a function of uncertainty. In month $i$, the liability is a realization from the set $\mathcal{U}(t+i-1)$. For the rolling strategy, we will be solving the following optimizaiton problems sequentially, one for each month($i = 1, \cdots, 6$):
     \[\begin{split}
-        & Ax+l\geq \hat{b}(t) + B(t)u, \forall ||u||_\infty \leq 1 \\
-        \iff & Ax+l\geq \hat{b}(t) + \max_{||u||_\infty \leq 1}B(t)u \\
-        \iff & Ax+l\geq \hat{b}(t) + |B(t)|\textbf{1}
+        \min_x\ & c_i^Tx,\\
+        \text{s.t. }& A_ix+l_i\geq b(t+i-1), \forall b(t+i-1)\in\mathcal{U}(t+i-1) ,\\
+        & 0\leq x\leq \bar{x_i}.
     \end{split}\]
-    Thus, we can formulate the model as
-    \begin{equation}\label{eq:robust_final}
-        \min_x c^Tx: Ax+l\geq \hat{b}(t) + |B(t)|\textbf{1}, 0\leq x\leq \bar{x} 
-    \end{equation}
-    The optimal objective value is $10.2471$. The optimal strategy is 
-    \[
-        x_{cash} = 
-        \begin{pmatrix}
-        64.518 & 58.079 & 48.951 & 38.144 & 25.141 & 10.247
-        \end{pmatrix}^T,
-    \]
-    $x_{cp}$ and $x_{cre}$ equals to 0. The results shows that if the company have sufficient amount of initial asset, the robust strategy will not turn to credit line nor commercial paper. The robust strategy is much more conservative than the naive strategy in that it uses less cash for investment and more for covering the liability.
-
-    Figure \ref{fig:robust} shows the robust counterpart of Figure \ref{fig:naive}. As we decrease the amount of initial funds, the optimal amount for credit line $X_{cre}$ and commercial paper $X_{cp}$ will stay 0 as well. The optimal value of excess funds to be invested $X_{cash}$ will decrease linearly. When the initial funds drops below 60.205 million, the problem will become infeasible.
-    % \begin{figure*}
-	   % \centering
-	   % \includegraphics[width=0.7\textwidth]{robust.png}
-    %     \caption{Optimal robust strategy for difference initial assets}
-    %     \label{fig:robust}
-    % \end{figure*}  
+    They are equivalent to the following LP problems:
+    \[\begin{split}
+        \min_x\ & c_i^Tx,\\
+        \text{s.t. }& A_ix+l_i\geq b(t+i-1)+|B(t+i-1)|\textbf{1} ,\\
+        & 0\leq x\leq \bar{x_i}.
+    \end{split}\]
 
 % ========= Affine Strategy =========
 
 \subsection{Affine Strategy}
 
-    Assume that at each time $t$, the information in previous time points (up to $t-1$) are available. We further assume that the decision variables are linear functions of previous information.
-    \[
-        x_{cash}(u) = x_{cash} + X_{cash}u,
-    \]
-    \[ 
-        x_{cp}(u) = x_{cp} + X_{cp}u,
-    \]
-    \[ 
-        x_{cre}(u) = x_{cre} + X_{cre}u.
-    \]
-    Let $X=(X_{cash}^T, X_{cp}^T, X_{cre}^T)^T$, the optimization problem can be formulated as 
-    \[\begin{split}
-	   \max_x\ & \min_{u:||u||_\infty \leq 1} c^Tx(u) \\
-        \text{s.t. } & X_{cash},  X_{cp}, X_{cre} \text{ strictly lower-triangular,}\\
-        & A(x + Xu) + l\geq b(t) + B(t)u,\forall b(t) \in \mathcal{U},\\
-        & 0\leq x+Xu \leq \bar{x}.
-    \end{split}\]
-    The constraint $A(x + Xu) + l\geq b(t) + B(t)u,\forall b(t) \in \mathcal{U}$ can be written as follows
-    \[\begin{split}
-        & A(x + Xu) + l\geq \hat{b}(t) + B(t)u,\forall ||u||_\infty\leq 1 \\
-        \iff & Ax+l\geq \hat{b}(t) + (B(t)-AX)u, \forall ||u||_\infty \leq 1 \\
-        \iff & Ax+l\geq \hat{b}(t) + \max_{||u||_\infty \leq 1}(B(t)-AX)u \\
-        \iff & Ax+l\geq \hat{b}(t) + |(B(t)-AX)|\textbf{1}
-    \end{split}\]
-    The objective function $\min_{u:||u||_\infty \leq 1} c^Tx(u)$ is equivalent to
-    \[\begin{split}
-    & c^Tx - \max_{u:||u||_\infty \leq 1} c^TX(-u) \\
-    = & c^Tx - ||X^Tc||_1
-    \end{split}\]
-    Thus, we can formulate the affine strategy as the following LP problem
-    \[\begin{split}
-	   \max_{x, X}\ & c^Tx - ||X^Tc||_1  \\
-        \text{s.t. } & X_{cash},  X_{cp}, X_{cre} \text{ strictly lower-triangular,}\\
-        & Ax + l\geq  \hat{b}(t) + |B(t) - AX|\textbf{1}, 0\leq x+Xu \leq \bar{x}.
-    \end{split}\]
+    For the affine strategy, we assume that the decision variables are linear functions of previous information. we will be solving the following optimizaiton problems sequentially ($i = 1, \cdots, 6$):
+    
 
-    The optimal solution is 
-    \[\begin{split}
-        x_{cash} = &
-        \begin{pmatrix}
-        64.52 &  55.96 & 46.45 & 35.43 & 24.45 & 13.62
-        \end{pmatrix}^T, \\
-        x_{cp} = &
-        \begin{pmatrix}
-        0 & 0.467 & 0.929
-        \end{pmatrix}^T, \\
-        x_{cre} = &
-        \begin{pmatrix}
-        0 & 0.061 & 0.104 & 0.148 & 0.179
-        \end{pmatrix}^T, \\
-        X_{Cash} = &
-        \begin{pmatrix}
-            0     &  0     &    0   &   0   &  0       &  0 \\
-            2.12  &  0     &    0   &   0   &  0       &  0 \\
-            1.28  &  1.23  &    0   &   0   &  0       &  0 \\
-            0.83  &  0.82  &   1.07 &   0   &  0       &  0 \\
-            0.13  &  0.12  &   0.12 & 0.34  &  0       &  0 \\
-            -0.58 &  -0.65 &  -0.71 & -0.80 &  -0.63   &  0
-        \end{pmatrix}, \\
-        X_{Cp} = &
-        \begin{pmatrix}
-            0       &  0       &    0   &   0   &  0   &  0 \\
-            -0.467  &  0       &    0   &   0   &  0   &  0 \\
-            -0.4656 &  -0.4635 &    0   &   0   &  0   &  0 \\
-        \end{pmatrix}^T, \\
-        X_{Cre} = &
-        \begin{pmatrix}
-            0      &  0      &    0   &   0    &  0  &  0 \\
-            -0.061 &  0      &    0   &   0    &  0  &  0 \\
-            -0.052 &  -0.052 &    0   &   0    &  0  &  0 \\
-            -0.049 &  -0.050 & -0.050 &   0    &  0  &  0 \\
-            -0.045 &  -0.045 & -0.045 & -0.045 &  0  &  0
-        \end{pmatrix}^T.
-    \end{split}\]
-    % \begin{figure*}
-    %    \centering
-    %    \includegraphics[width=0.7\textwidth]{affine.png}
-    %     \caption{Optimal affine strategy for difference initial assets}
-    %     \label{fig:affine}
-    % \end{figure*}
-    TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED TO BE COMPLETED 
 
 % ========= Relative Robust Strategy =========
 
@@ -468,101 +200,26 @@
 \newpage
 \appendix
 
+\onecolumn
+
 % ======================= Appendix A =======================
-\section{Appendix: AR(2) Recursive Substitution}\label{apx:recursive substitution}
 
-Let $u = (\epsilon(t+1), \cdots, \epsilon(t+T))^T$. With the auto-regressive model (\ref{eq:ar-est}), $\hat{b}(t)$ and $B(t)$ can be expressed as a function of $\beta(t), \beta(t-1), \theta_1^*, \theta_2^*$ and $\sigma^*$ using recursive substitution. 
-\[\beta(t+1) = \theta_1\beta(t)+\theta_2\beta(t-1)+\sigma\epsilon(t+1)\]
-\[\begin{split}
-	\beta(t+2) 
-    = & \theta_1\beta(t+1)+\theta_2\beta(t)+\sigma\epsilon(t+2) \\
-    = & \theta_1[\theta_1\beta(t)+\theta_2\beta(t-1)+\sigma\epsilon(t+1)]+
-    	\theta_2\beta(t)+\sigma\epsilon(t+2) \\
-    = & (\theta_1^2+\theta_2)\beta(t)+\theta_1\theta_2\beta(t-1)+
-    	\theta_1\sigma\epsilon(t+1)+\sigma\epsilon(t+2)
-\end{split}\]
-\[\begin{split}
-	\beta(t+3) 
-    = & \theta_1\beta(t+2)+\theta_2\beta(t+1)+\sigma\epsilon(t+3) \\
-    = & \theta_1\big[(\theta_1^2+\theta_2)\beta(t)+\theta_1\theta_2\beta(t-1)+
-    	\theta_1\sigma\epsilon(t+1)+\sigma\epsilon(t+2)\big]+ \\
-      & \theta_2\big[\theta_1\beta(t)+\theta_2\beta(t-1)+\sigma\epsilon(t+1)\big]+\sigma\epsilon(t+3) \\
-    = & (\theta_1^3+2\theta_1\theta_2)\beta(t) + (\theta_1^2\theta_2+\theta_2^2)\beta(t-1) + \\
-      &	(\theta_1^2+\theta_2)\sigma\epsilon(t+1) + \theta_1\sigma\epsilon(t+2) +
-        \sigma\epsilon(t+3)
-\end{split}\]
-\[\begin{split}
-	\beta(t+4) 
-    = & \theta_1\beta(t+3)+\theta_2\beta(t+2)+\sigma\epsilon(t+4) \\
-    = & \theta_1\big[ (\theta_1^3+2\theta_1\theta_2)\beta(t) + (\theta_1^2\theta_2+\theta_2^2)\beta(t-1) + \\
-      &	(\theta_1^2+\theta_2)\sigma\epsilon(t+1) + \theta_1\sigma\epsilon(t+2) +
-        \sigma\epsilon(t+3)\big]+\\
-      & \theta_2\big[ (\theta_1^2+\theta_2)\beta(t)+\theta_1\theta_2\beta(t-1)+
-    	\theta_1\sigma\epsilon(t+1)+\sigma\epsilon(t+2)\big]+\sigma\epsilon(t+4) \\
-    = & (\theta_1^4+3\theta_1^2\theta_2+\theta_2^2)\beta(t)+
-    	(\theta_1^3\theta_2+2\theta_1\theta_2^2)\beta(t-1)+\\
-       & (\theta_1^3+2\theta_1\theta_2)\sigma\epsilon(t+1)+(\theta_1^2+\theta_2)\sigma\epsilon(t+2)+\theta_1\sigma\epsilon(t+3)+\sigma\epsilon(t+4)
-\end{split}\]
-\[\begin{split}
-	\beta(t+5) = & \theta_1\beta(t+4)+\theta_2\beta(t+3)+\sigma\epsilon(t+5) \\
-    = & \theta_1\big[(\theta_1^4+3\theta_1^2\theta_2+\theta_2^2)\beta(t)+
-    	(\theta_1^3\theta_2+2\theta_1\theta_2^2)\beta(t-1)+\\
-      & (\theta_1^3+2\theta_1\theta_2)\sigma\epsilon(t+1)+(\theta_1^2+\theta_2)\sigma\epsilon(t+2)+\theta_1\sigma\epsilon(t+3)+\sigma\epsilon(t+4)\big]+\\
-      & \theta_2\big[(\theta_1^3+2\theta_1\theta_2)\beta(t) + (\theta_1^2\theta_2+\theta_2^2)\beta(t-1) + \\
-      &	(\theta_1^2+\theta_2)\sigma\epsilon(t+1) + \theta_1\sigma\epsilon(t+2) +
-        \sigma\epsilon(t+3)\big]+\sigma\epsilon(t+5) \\
-  	= & (\theta_1^5+4\theta_1^3\theta_2+3\theta_1\theta_2^2)\beta(t) +
-        (\theta_1^4\theta_2+3\theta_1^2\theta_2^2+\theta_2^3)\beta(t-1) + \\
-      &(\theta_1^4+3\theta_1^2\theta_2+\theta_2^2)\sigma\epsilon(t+1)+(\theta_1^3+2\theta_1\theta_2)\sigma\epsilon(t+2)+(\theta_1^2+\theta_2)\sigma\epsilon(t+3)+\theta_1\sigma\epsilon(t+4)+\sigma\epsilon(t+5)
-\end{split}\]
-\[\begin{split}
-	\beta(t+6) =
-      & \theta_1\beta(t+5)+\theta_2\beta(t+4)+\sigma\epsilon(t+6) \\
-    = & \theta_1\big[(\theta_1^5+4\theta_1^3\theta_2+3\theta_1\theta_2^2)\beta(t) +
-        (\theta_1^4\theta_2+3\theta_1^2\theta_2^2+\theta_2^3)\beta(t-1)\\
-      & (\theta_1^4+3\theta_1^2\theta_2+\theta_2^2)\sigma\epsilon(t+1)+(\theta_1^3+2\theta_1\theta_2)\sigma\epsilon(t+2)+(\theta_1^2+\theta_2)\sigma\epsilon(t+3)+\theta_1\sigma\epsilon(t+4)+\sigma\epsilon(t+5)\big]+\\
-      & \theta_2\big[(\theta_1^4+3\theta_1^2\theta_2+\theta_2^2)\beta(t)+
-    	(\theta_1^3\theta_2+2\theta_1\theta_2^2)\beta(t-1)+\\
-      & (\theta_1^3+2\theta_1\theta_2)\sigma\epsilon(t+1)+(\theta_1^2+\theta_2)\sigma\epsilon(t+2)+\theta_1\sigma\epsilon(t+3)+\sigma\epsilon(t+4)\big]+\sigma\epsilon(t+6) \\
-    = & (\theta_1^6+5\theta_1^4\theta_2+6\theta_1^2\theta_2^2+\theta_2^3)\beta(t) +
-        (\theta_1^5\theta_2+4\theta_1^3\theta_2^2+3\theta_1\theta_2^3)\beta(t-1)\\
-      & (\theta_1^5+4\theta_1^3\theta_2+3\theta_1\theta_2^2)\sigma\epsilon(t+1)+(\theta_1^4+3\theta_1^2\theta_2+\theta_2^2)\sigma\epsilon(t+2)+ \\
-      & (\theta_1^3+2\theta_1\theta_2)\sigma\epsilon(t+3)+(\theta_1^2+\theta_2)\sigma\epsilon(t+4)+\theta_1\sigma\epsilon(t+5)+\sigma\epsilon(t+6)
-\end{split}\]
+\input{App1ProblemFormulation}
 
-Express the previous equation in the matrix form, we get
 
-\[
-	\hat{b}(t) = 
-    \begin{pmatrix}
-    	\theta_1 & \theta_2\\
-		\theta_1^2+\theta_2 & \theta_1\theta_2 \\
-        \theta_1^3+2\theta_1\theta_2 & \theta_1^2\theta_2+\theta_2^2 \\
-        \theta_1^4+3\theta_1^2\theta_2+\theta_2^2 & 
-    	\theta_1^3\theta_2+2\theta_1\theta_2^2 \\
-        \theta_1^5+4\theta_1^3\theta_2+3\theta_1\theta_2^2 & 
-        \theta_1^4\theta_2+3\theta_1^2\theta_2^2+\theta_2^3 \\
-        \theta_1^6+5\theta_1^4\theta_2+6\theta_1^2\theta_2^2+\theta_2^3 & 
-        \theta_1^5\theta_2+4\theta_1^3\theta_2^2+3\theta_1\theta_2^3 \\
-	\end{pmatrix}
-    \begin{pmatrix}
-		\beta(t) \\
-        \beta(t-1)
-	\end{pmatrix}
-\]
-\[
-	B(t) = 
-    \sigma\begin{pmatrix}
-    	1 & 0 & 0 & 0 & 0 & 0\\
-    	\theta_1 & 1 & 0 & 0 & 0 & 0\\
-    	\theta_1^2+\theta_2 & \theta_1 & 1 & 0 & 0 & 0\\
-        \theta_1^3+2\theta_1\theta_2 & \theta_1^2+\theta_2 & \theta_1 & 1 & 0 & 0\\
-    	\theta_1^4+3\theta_1^2\theta_2+\theta_2^2 & 
-        \theta_1^3+2\theta_1\theta_2 & \theta_1^2+\theta_2 & \theta_1 & 1 & 0\\
-    	\theta_1^5+4\theta_1^3\theta_2+3\theta_1\theta_2^2 &
-        \theta_1^4+3\theta_1^2\theta_2+\theta_2^2 & 
-        \theta_1^3+2\theta_1\theta_2 & \theta_1^2+\theta_2 & \theta_1 & 1
-    \end{pmatrix}
-\]
+% ======================= Appendix B =======================
+
+
+\section{Analysis on not-rolling-based strategy}\label{apx:notRollingStrategy}
+
+
+% ======================= Appendix C =======================
+
+\input{App3RecursiveSubstitution}
+
+\section{Code}\label{apx:code}
+
+All the code for this project can be found in the Github repository \url{https://github.com/boyinggong/227A_final_project}
+
 
 \end{document}

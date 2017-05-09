@@ -1,0 +1,96 @@
+
+\section{Appendix: AR(2) Recursive Substitution}\label{apx:recursiveSubstitution}
+
+    Let $u = (\epsilon(t+1), \cdots, \epsilon(t+T))^T$. With the auto-regressive model (\ref{eq:ar-est}), $\hat{b}(t)$ and $B(t)$ can be expressed as a function of $\beta(t), \beta(t-1), \theta_1^*, \theta_2^*$ and $\sigma^*$ using recursive substitution. 
+    \[\beta(t+1) = \theta_1\beta(t)+\theta_2\beta(t-1)+\sigma\epsilon(t+1)\]
+    \[\begin{split}
+        \beta(t+2) 
+        = & \theta_1\beta(t+1)+\theta_2\beta(t)+\sigma\epsilon(t+2) \\
+        = & \theta_1[\theta_1\beta(t)+\theta_2\beta(t-1)+\sigma\epsilon(t+1)]+
+            \theta_2\beta(t)+\sigma\epsilon(t+2) \\
+        = & (\theta_1^2+\theta_2)\beta(t)+\theta_1\theta_2\beta(t-1)+
+            \theta_1\sigma\epsilon(t+1)+\sigma\epsilon(t+2)
+    \end{split}\]
+    \[\begin{split}
+        \beta(t+3) 
+        = & \theta_1\beta(t+2)+\theta_2\beta(t+1)+\sigma\epsilon(t+3) \\
+        = & \theta_1\big[(\theta_1^2+\theta_2)\beta(t)+\theta_1\theta_2\beta(t-1)+
+            \theta_1\sigma\epsilon(t+1)+\sigma\epsilon(t+2)\big]+ \\
+          & \theta_2\big[\theta_1\beta(t)+\theta_2\beta(t-1)+\sigma\epsilon(t+1)\big]+\sigma\epsilon(t+3) \\
+        = & (\theta_1^3+2\theta_1\theta_2)\beta(t) + (\theta_1^2\theta_2+\theta_2^2)\beta(t-1) + \\
+          & (\theta_1^2+\theta_2)\sigma\epsilon(t+1) + \theta_1\sigma\epsilon(t+2) +
+            \sigma\epsilon(t+3)
+    \end{split}\]
+    \[\begin{split}
+        \beta(t+4) 
+        = & \theta_1\beta(t+3)+\theta_2\beta(t+2)+\sigma\epsilon(t+4) \\
+        = & \theta_1\big[ (\theta_1^3+2\theta_1\theta_2)\beta(t) + (\theta_1^2\theta_2+\theta_2^2)\beta(t-1) + \\
+          & (\theta_1^2+\theta_2)\sigma\epsilon(t+1) + \theta_1\sigma\epsilon(t+2) +
+            \sigma\epsilon(t+3)\big]+\\
+          & \theta_2\big[ (\theta_1^2+\theta_2)\beta(t)+\theta_1\theta_2\beta(t-1)+
+            \theta_1\sigma\epsilon(t+1)+\sigma\epsilon(t+2)\big]+\sigma\epsilon(t+4) \\
+        = & (\theta_1^4+3\theta_1^2\theta_2+\theta_2^2)\beta(t)+
+            (\theta_1^3\theta_2+2\theta_1\theta_2^2)\beta(t-1)+\\
+           & (\theta_1^3+2\theta_1\theta_2)\sigma\epsilon(t+1)+(\theta_1^2+\theta_2)\sigma\epsilon(t+2)+\theta_1\sigma\epsilon(t+3)+\sigma\epsilon(t+4)
+    \end{split}\]
+    \[\begin{split}
+        \beta(t+5) = & \theta_1\beta(t+4)+\theta_2\beta(t+3)+\sigma\epsilon(t+5) \\
+        = & \theta_1\big[(\theta_1^4+3\theta_1^2\theta_2+\theta_2^2)\beta(t)+
+            (\theta_1^3\theta_2+2\theta_1\theta_2^2)\beta(t-1)+\\
+          & (\theta_1^3+2\theta_1\theta_2)\sigma\epsilon(t+1)+(\theta_1^2+\theta_2)\sigma\epsilon(t+2)+\theta_1\sigma\epsilon(t+3)+\sigma\epsilon(t+4)\big]+\\
+          & \theta_2\big[(\theta_1^3+2\theta_1\theta_2)\beta(t) + (\theta_1^2\theta_2+\theta_2^2)\beta(t-1) + \\
+          & (\theta_1^2+\theta_2)\sigma\epsilon(t+1) + \theta_1\sigma\epsilon(t+2) +
+            \sigma\epsilon(t+3)\big]+\sigma\epsilon(t+5) \\
+        = & (\theta_1^5+4\theta_1^3\theta_2+3\theta_1\theta_2^2)\beta(t) +
+            (\theta_1^4\theta_2+3\theta_1^2\theta_2^2+\theta_2^3)\beta(t-1) + \\
+          &(\theta_1^4+3\theta_1^2\theta_2+\theta_2^2)\sigma\epsilon(t+1)+(\theta_1^3+2\theta_1\theta_2)\sigma\epsilon(t+2)+(\theta_1^2+\theta_2)\sigma\epsilon(t+3)+\theta_1\sigma\epsilon(t+4)+\sigma\epsilon(t+5)
+    \end{split}\]
+    \[\begin{split}
+        \beta(t+6) =
+          & \theta_1\beta(t+5)+\theta_2\beta(t+4)+\sigma\epsilon(t+6) \\
+        = & \theta_1\big[(\theta_1^5+4\theta_1^3\theta_2+3\theta_1\theta_2^2)\beta(t) +
+            (\theta_1^4\theta_2+3\theta_1^2\theta_2^2+\theta_2^3)\beta(t-1)\\
+          & (\theta_1^4+3\theta_1^2\theta_2+\theta_2^2)\sigma\epsilon(t+1)+(\theta_1^3+2\theta_1\theta_2)\sigma\epsilon(t+2)+(\theta_1^2+\theta_2)\sigma\epsilon(t+3)+\theta_1\sigma\epsilon(t+4)+\sigma\epsilon(t+5)\big]+\\
+          & \theta_2\big[(\theta_1^4+3\theta_1^2\theta_2+\theta_2^2)\beta(t)+
+            (\theta_1^3\theta_2+2\theta_1\theta_2^2)\beta(t-1)+\\
+          & (\theta_1^3+2\theta_1\theta_2)\sigma\epsilon(t+1)+(\theta_1^2+\theta_2)\sigma\epsilon(t+2)+\theta_1\sigma\epsilon(t+3)+\sigma\epsilon(t+4)\big]+\sigma\epsilon(t+6) \\
+        = & (\theta_1^6+5\theta_1^4\theta_2+6\theta_1^2\theta_2^2+\theta_2^3)\beta(t) +
+            (\theta_1^5\theta_2+4\theta_1^3\theta_2^2+3\theta_1\theta_2^3)\beta(t-1)\\
+          & (\theta_1^5+4\theta_1^3\theta_2+3\theta_1\theta_2^2)\sigma\epsilon(t+1)+(\theta_1^4+3\theta_1^2\theta_2+\theta_2^2)\sigma\epsilon(t+2)+ \\
+          & (\theta_1^3+2\theta_1\theta_2)\sigma\epsilon(t+3)+(\theta_1^2+\theta_2)\sigma\epsilon(t+4)+\theta_1\sigma\epsilon(t+5)+\sigma\epsilon(t+6)
+    \end{split}\]
+
+    Express the previous equation in the matrix form, we get
+
+    \[
+        \hat{b}(t) = 
+        \begin{pmatrix}
+            \theta_1 & \theta_2\\
+            \theta_1^2+\theta_2 & \theta_1\theta_2 \\
+            \theta_1^3+2\theta_1\theta_2 & \theta_1^2\theta_2+\theta_2^2 \\
+            \theta_1^4+3\theta_1^2\theta_2+\theta_2^2 & 
+            \theta_1^3\theta_2+2\theta_1\theta_2^2 \\
+            \theta_1^5+4\theta_1^3\theta_2+3\theta_1\theta_2^2 & 
+            \theta_1^4\theta_2+3\theta_1^2\theta_2^2+\theta_2^3 \\
+            \theta_1^6+5\theta_1^4\theta_2+6\theta_1^2\theta_2^2+\theta_2^3 & 
+            \theta_1^5\theta_2+4\theta_1^3\theta_2^2+3\theta_1\theta_2^3 \\
+        \end{pmatrix}
+        \begin{pmatrix}
+            \beta(t) \\
+            \beta(t-1)
+        \end{pmatrix}
+    \]
+    \[
+        B(t) = 
+        \sigma\begin{pmatrix}
+            1 & 0 & 0 & 0 & 0 & 0\\
+            \theta_1 & 1 & 0 & 0 & 0 & 0\\
+            \theta_1^2+\theta_2 & \theta_1 & 1 & 0 & 0 & 0\\
+            \theta_1^3+2\theta_1\theta_2 & \theta_1^2+\theta_2 & \theta_1 & 1 & 0 & 0\\
+            \theta_1^4+3\theta_1^2\theta_2+\theta_2^2 & 
+            \theta_1^3+2\theta_1\theta_2 & \theta_1^2+\theta_2 & \theta_1 & 1 & 0\\
+            \theta_1^5+4\theta_1^3\theta_2+3\theta_1\theta_2^2 &
+            \theta_1^4+3\theta_1^2\theta_2+\theta_2^2 & 
+            \theta_1^3+2\theta_1\theta_2 & \theta_1^2+\theta_2 & \theta_1 & 1
+        \end{pmatrix}
+    \]
